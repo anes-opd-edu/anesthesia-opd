@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1c7f49">
+<title>麻醉衛教影片播放（跟診人員用）</title>
+<style>
+  :root {
+    --primary: #1c7f49; --primary-dark: #145c35; --primary-light: #e8f3ec;
+    --blue: #187598; --blue-light: #eaf3f7; --navy: #00294a;
+    --bg: #f5f8f6; --text: #1f2d27; --border: #cfdcd4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body { font-family: 'Noto Sans TC','PingFang TC','Microsoft JhengHei',Arial,sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+
+  header { background: white; border-bottom: 4px solid var(--primary); padding: 10px 18px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+  header img { height: 44px; }
+  .header-title { font-size: 20px; font-weight: 900; color: var(--navy); line-height: 1.25; }
+  .header-sub { font-size: 13px; color: var(--primary); font-weight: 700; }
+
+  main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 22px; overflow-y: auto; }
+  .screen { display: none; width: 100%; max-width: 980px; }
+  .screen.active { display: block; }
+
+  .prompt { text-align: center; font-size: 26px; font-weight: 900; color: var(--navy); margin-bottom: 24px; }
+  .prompt small { display: block; font-size: 16px; color: #5a6b62; font-weight: 500; margin-top: 6px; }
+
+  .type-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .type-card { background: white; border: 3px solid var(--border); border-radius: 22px; padding: 34px 20px; text-align: center; cursor: pointer; transition: transform .12s, border-color .12s; }
+  .type-card:active { transform: scale(.97); border-color: var(--primary); }
+  .type-card .icon { font-size: 56px; margin-bottom: 14px; }
+  .type-card .name { font-size: 30px; font-weight: 900; color: var(--navy); }
+  .type-card .en { font-size: 15px; color: #5a6b62; margin-top: 6px; }
+
+  .lang-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+  .lang-btn { background: white; border: 3px solid var(--border); border-radius: 20px; padding: 26px 18px; text-align: center; cursor: pointer; transition: transform .12s, border-color .12s; position: relative; }
+  .lang-btn:active { transform: scale(.97); border-color: var(--primary); }
+  .lang-btn .native { font-size: 28px; font-weight: 900; color: var(--primary-dark); }
+  .lang-btn .zh { font-size: 16px; color: #5a6b62; margin-top: 6px; }
+  .lang-btn.disabled { opacity: .45; cursor: default; }
+  .lang-btn.disabled:active { transform: none; border-color: var(--border); }
+  .lang-btn .badge { position: absolute; top: 10px; right: 12px; background: var(--blue-light); color: var(--blue); font-size: 13px; font-weight: 800; padding: 3px 10px; border-radius: 999px; }
+
+  .back-btn { display: inline-flex; align-items: center; gap: 8px; background: white; border: 2.5px solid var(--primary); color: var(--primary-dark); font-size: 20px; font-weight: 800; padding: 12px 26px; border-radius: 999px; cursor: pointer; font-family: inherit; margin-bottom: 20px; }
+  .back-btn:active { background: var(--primary-light); }
+
+  #screen-player { max-width: 1100px; text-align: center; }
+  .player-title { font-size: 21px; font-weight: 900; color: var(--navy); margin-bottom: 14px; }
+  .player-box { position: relative; width: 100%; padding-top: 56.25%; background: #000; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 30px rgba(0,41,74,.25); }
+  .player-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .ended-tip { display: none; margin-top: 16px; font-size: 19px; font-weight: 800; color: var(--primary-dark); }
+
+  footer { text-align: center; font-size: 13px; color: #8a978f; padding: 8px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <img alt="秀傳醫療體系" src="data:image/png;base64,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">
+  <div>
+    <div class="header-title">麻醉衛教影片</div>
+    <div class="header-sub">跟診人員播放專用 · 請選影片後拿給病人觀看</div>
+  </div>
+</header>
+
+<main>
+  <!-- 第一步：選麻醉方式 -->
+  <section class="screen active" id="screen-type">
+    <div class="prompt">請選擇麻醉方式<small>病人即將接受哪一種麻醉？</small></div>
+    <div class="type-grid" id="typeGrid"></div>
+  </section>
+
+  <!-- 第二步：選語言 -->
+  <section class="screen" id="screen-lang">
+    <button class="back-btn" onclick="showScreen('type')">◀ 重選麻醉方式</button>
+    <div class="prompt" id="langPrompt"></div>
+    <div class="lang-grid" id="langGrid"></div>
+  </section>
+
+  <!-- 播放 -->
+  <section class="screen" id="screen-player">
+    <button class="back-btn" onclick="stopAndBack()">◀ 返回選單</button>
+    <div class="player-title" id="playerTitle"></div>
+    <div class="player-box"><div id="ytPlayer"></div></div>
+    <div class="ended-tip" id="endedTip">✅ 播放完畢，即將回到主選單…</div>
+  </section>
+</main>
+
+<footer>秀傳醫療體系 麻醉科 · 病人衛教影片（診間版）</footer>
+
+<script>
+/* ====== 影片 ID 設定：上傳 YouTube 後把 ID 填進來，空字串 = 顯示「製作中」 ====== */
+const VIDEOS = {
+  ga:     { name: '全身麻醉', en: 'General Anesthesia', icon: '😴',
+            ids: { zh: 'qXKA__VDcP8', tai: '', en: '', id: '', vi: '' } },
+  spinal: { name: '半身麻醉', en: 'Spinal Anesthesia', icon: '💉',
+            ids: { zh: 'H810u5VxYlE', tai: '', en: '', id: '', vi: '' } },
+  iv:     { name: '靜脈麻醉', en: 'IV Sedation', icon: '💤',
+            ids: { zh: 'BZR0qD36G_A', tai: '', en: '', id: '', vi: '' } }
+};
+const LANGS = [
+  { key: 'zh',  native: '國語',             zh: '中文配音' },
+  { key: 'tai', native: '台語',             zh: '台語配音' },
+  { key: 'en',  native: 'English',          zh: '英語配音' },
+  { key: 'id',  native: 'Bahasa Indonesia', zh: '印尼語配音' },
+  { key: 'vi',  native: 'Tiếng Việt',       zh: '越南語配音' }
+];
+
+let currentType = null, ytPlayer = null, ytReady = false, endTimer = null;
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+/* 第一步 */
+const typeGrid = document.getElementById('typeGrid');
+Object.entries(VIDEOS).forEach(([key, v]) => {
+  const card = document.createElement('div');
+  card.className = 'type-card';
+  card.innerHTML = `<div class="icon">${v.icon}</div><div class="name">${v.name}</div><div class="en">${v.en}</div>`;
+  card.onclick = () => { currentType = key; buildLangScreen(); showScreen('lang'); };
+  typeGrid.appendChild(card);
+});
+
+/* 第二步 */
+function buildLangScreen() {
+  const v = VIDEOS[currentType];
+  document.getElementById('langPrompt').innerHTML =
+    `${v.icon} ${v.name}<small>請選擇病人聽得懂的語言</small>`;
+  const grid = document.getElementById('langGrid');
+  grid.innerHTML = '';
+  LANGS.forEach(lang => {
+    const id = v.ids[lang.key];
+    const btn = document.createElement('div');
+    btn.className = 'lang-btn' + (id ? '' : ' disabled');
+    btn.innerHTML = `<div class="native">${lang.native}</div><div class="zh">${lang.zh}</div>` +
+                    (id ? '' : '<div class="badge">製作中</div>');
+    if (id) btn.onclick = () => playVideo(id, v, lang);
+    grid.appendChild(btn);
+  });
+}
+
+/* 播放：YouTube IFrame API，播完自動回主選單 */
+function playVideo(videoId, v, lang) {
+  document.getElementById('playerTitle').textContent = `${v.icon} ${v.name} — ${lang.native}`;
+  document.getElementById('endedTip').style.display = 'none';
+  showScreen('player');
+  const create = () => {
+    if (ytPlayer) { ytPlayer.loadVideoById(videoId); return; }
+    ytPlayer = new YT.Player('ytPlayer', {
+      videoId: videoId,
+      playerVars: { autoplay: 1, rel: 0, playsinline: 1, modestbranding: 1 },
+      events: {
+        onReady: e => e.target.playVideo(),
+        onStateChange: e => {
+          if (e.data === YT.PlayerState.ENDED) {
+            document.getElementById('endedTip').style.display = 'block';
+            clearTimeout(endTimer);
+            endTimer = setTimeout(() => { stopAndBack(); }, 8000);
+          }
+        }
+      }
+    });
+  };
+  if (ytReady) create();
+  else window._pendingPlay = create;
+}
+function stopAndBack() {
+  clearTimeout(endTimer);
+  if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+  document.getElementById('endedTip').style.display = 'none';
+  showScreen('type');
+}
+window.onYouTubeIframeAPIReady = function() {
+  ytReady = true;
+  if (window._pendingPlay) { window._pendingPlay(); window._pendingPlay = null; }
+};
+(function() {
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+})();
+</script>
+</body>
+</html>
